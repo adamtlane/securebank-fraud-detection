@@ -1,0 +1,33 @@
+# Ignore virtual environments
+.venv/
+env/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore raw data and temporary files EXCEPT data_sources folder and its contents
+# Remove these lines so Docker includes your data files:
+# *.csv
+# *.parquet
+# *.json
+# data_sources/
+
+# Instead, ignore any other temp datasets or models:
+storage/datasets/
+storage/models/
+securebank/data_sources/*
+
+# Ignore development files
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Ignore tests and notebooks (if any)
+tests/
+*.ipynb
+
+# Git-related
+.git
+.gitignore

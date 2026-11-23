@@ -1,0 +1,17 @@
+# Ignore the raw data files.
+data_sources/
+
+# Ignore processed datasets and model binaries
+storage/datasets/
+storage/models/
+
+# Ignore the Python bytecode.
+__pycache__/
+*.pyc
+
+# Ignore the environment folders.
+.venv/
+env/
+
+# Ignore any macOS artifacts.
+.DS_Store
