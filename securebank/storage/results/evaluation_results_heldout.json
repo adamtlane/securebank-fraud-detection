@@ -1,0 +1,42 @@
+{
+  "evaluated_on": "held-out 30% stratified test split (random_state=42), 444,862 transactions",
+  "classification_report": {
+    "0": {
+      "precision": 0.9979921172008627,
+      "recall": 0.9998803376735386,
+      "f1-score": 0.9989353351438651,
+      "support": 442913.0
+    },
+    "1": {
+      "precision": 0.9522952295229523,
+      "recall": 0.5428424833247819,
+      "f1-score": 0.6915032679738562,
+      "support": 1949.0
+    },
+    "accuracy": 0.9978779936249893,
+    "macro avg": {
+      "precision": 0.9751436733619074,
+      "recall": 0.7713614104991602,
+      "f1-score": 0.8452193015588607,
+      "support": 444862.0
+    },
+    "weighted avg": {
+      "precision": 0.9977919130160048,
+      "recall": 0.9978779936249893,
+      "f1-score": 0.9975884340848529,
+      "support": 444862.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      442860,
+      53
+    ],
+    [
+      891,
+      1058
+    ]
+  ],
+  "roc_auc": 0.9776209792671445,
+  "average_precision": 0.8087180008341485
+}

@@ -6,6 +6,7 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.model_selection import train_test_split
 from datetime import datetime
 from sklearn.metrics import (
     classification_report,
@@ -213,6 +214,11 @@ def main():
 
     X = df.drop(columns=['is_fraud']) # Separate features and target variable.
     y = df['is_fraud']
+
+    # Evaluate on the same held out 30% test split that train_model.py uses, so the
+    # transactions the model was trained on are not counted in the results.
+    _, X, _, y = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
+    print(f"Evaluating on the held out test split: {len(y)} transactions")
     
     print("Transforming features with preprocessor...") # Transform raw features using the loaded preprocessor.
     X_processed = preprocessor.transform(X)

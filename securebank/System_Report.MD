@@ -9,7 +9,7 @@ This report provides a comprehensive overview of the *SecureBank* fraud detectio
 
 The *SecureBank* fraud detection system has been designed to fulfill all the outlined minimum requirements, establishing a solid foundation for reliable fraud identification. The system begins by ingesting raw transaction data and performing essential preprocessing steps, such as handling missing values and extracting temporal features like month, day, and specific day of the week. These engineered features help the model capture seasonal and behavioral trends that improve its ability to distinguish fraudulent transactions. Additionally, the system carefully removes sensitive or irrelevant columns to maintain data privacy and align with operational needs.
 
-At its core, the system trains a supervised machine learning model, specifically a Random Forest Classifier, using the processed dataset. Hyperparameter tuning and thorough evaluation with standard metrics (including precision, recall, F1-score, confusion matrices, and ROC AUC) ensure a rigorous offline performance assessment prior to deployment. The design also includes a Flask-based API for real-time fraud prediction, allowing seamless integration into *SecureBank*’s operational environment by accepting transaction details and returning fraud risk assessments instantly.
+At its core, the system trains a supervised machine learning model, specifically a Random Forest Classifier, using the processed dataset. Evaluation on a held out test set with standard metrics (including precision, recall, F1-score, confusion matrices, and ROC AUC) provides an offline performance assessment prior to deployment. The design also includes a Flask-based API for real-time fraud prediction, allowing seamless integration into *SecureBank*’s operational environment by accepting transaction details and returning fraud risk assessments instantly.
 
 Beyond simply meeting requirements, the system offers several enhancements that improve robustness and usability. The modular architecture separates concerns among data processing, model training, evaluation, and prediction serving, enabling maintainability and future extensibility. Moreover, it produces detailed comprehensive reports and visualizations that provide rich insights for stakeholders to understand model behavior. Thoughtful error handling and logging in the API further support operational transparency and troubleshooting.
 
@@ -33,7 +33,7 @@ We can ensure dataset quality through a series of safeguards. Rows with missing 
 
 As mentioned previously, the *SecureBank* fraud detection system employs a Random Forest Classifier, which was selected for its robustness, interpretability, and ability to handle imbalanced datasets effectively. Random Forests are ensemble methods that combine multiple decision trees, reducing overfitting risks while capturing complex feature interactions essential for fraud detection. This helps to balance predictive power and operational efficiency while also enabling scalable training and fast inference. This is critical in real-time fraud monitoring environments.
 
-Hyperparameter tuning is performed using grid search with cross-validation on the training dataset, optimizing parameters such as the number of trees, maximum depth, and minimum samples per leaf. This systematic approach ensures the model achieves a strong balance between bias and variance, improving generalization to unseen data. The tuning process also incorporates class weighting to address class imbalance, giving higher penalty to misclassifying fraudulent transactions, which are rarer but carry greater cost. By carefully calibrating hyperparameters, the model attains high recall on fraud cases while maintaining precision on legitimate transactions.
+The model is a random forest of 100 trees with scikit-learn's default settings. The labeled data is split into a 70 percent training set and a 30 percent test set, stratified so that the rare fraud class appears in the same proportion in both. No hyperparameter search or class weighting is applied in this version. Tuning the number of trees, the maximum depth, and the minimum samples per leaf with a cross validated grid search, and weighting the fraud class more heavily, are the most direct next steps for raising fraud recall.
 
 Evaluation metrics are selected to capture both overall and class-specific performance critical for fraud detection. Accuracy is reported for completeness, but precision, recall, and F1-score for the minority fraud class are prioritized as they directly reflect the model’s ability to identify fraud. Additionally, the ROC-AUC metric is used to evaluate the model’s discrimination capability across varying thresholds, providing a comprehensive performance overview beyond a single cutoff.
 
@@ -41,26 +41,28 @@ While constructing this system, trade-off's between modeling approaches were car
 
 ## **Performance Metrics**
 
-The precision-recall curve illustrates the trade-off between precision and recall for the fraud class (label 1.0) across different decision thresholds. High precision indicates that the model rarely misclassifies legitimate transactions as fraud, while high recall shows the model successfully identifies most fraudulent transactions. In our results, the curve shows that the model maintains precision above 95% even as recall approaches 85%, highlighting its strong ability to detect fraud with minimal false alarms. This visualization helps guide threshold selection and operational policies for balancing risk and customer experience.
+All results in this section come from the held out test set of 444,862 transactions, 1,949 of them fraudulent, that the model never saw during training. An earlier version of this report scored the model on the full dataset, which includes the transactions it was trained on. The model classifies its training transactions perfectly, so that version overstated fraud recall at 86.3 percent, compared with 54.3 percent on unseen data.
+
+The precision-recall curve illustrates the trade-off between precision and recall for the fraud class (label 1.0) across different decision thresholds. High precision indicates that the model rarely misclassifies legitimate transactions as fraud, while high recall shows the model successfully identifies most fraudulent transactions. At the default decision threshold, the model reaches a fraud precision of 95.2% with a recall of 54.3%, and the average precision across all thresholds is 0.809. Lowering the threshold would catch more fraud at the cost of more false alarms. This visualization helps guide threshold selection and operational policies for balancing risk and customer experience.
 
 <p align="center">
-  <img src="storage/results/precision_recall_20250810_100801.png" width="750"/>
+  <img src="storage/results/precision_recall_heldout.png" width="750"/>
 </p>
 
 <p align="center"><b>Figure 1: The Precision-Recall Plot.</b></p>
 
-The ROC (Receiver Operating Characteristic) curve demonstrates the model’s capability to distinguish between legitimate and fraudulent transactions across all classification thresholds. The curve plots the True Positive Rate (recall) against the False Positive Rate, with an area under the curve (AUC) of 0.994. An ROC AUC near 1.0 indicates excellent discriminatory power, meaning the model effectively separates fraudulent transactions from legitimate ones. This metric is particularly useful when evaluating models on imbalanced datasets, as it summarizes overall performance independently of class distribution.
+The ROC (Receiver Operating Characteristic) curve demonstrates the model’s capability to distinguish between legitimate and fraudulent transactions across all classification thresholds. The curve plots the True Positive Rate (recall) against the False Positive Rate, with an area under the curve (AUC) of 0.978. An ROC AUC near 1.0 indicates excellent discriminatory power, meaning the model effectively separates fraudulent transactions from legitimate ones. This metric is particularly useful when evaluating models on imbalanced datasets, as it summarizes overall performance independently of class distribution.
 
 <p align="center">
-  <img src="storage/results/roc_curve_20250810_100801.png" width="750"/>
+  <img src="storage/results/roc_curve_heldout.png" width="750"/>
 </p>
 
 <p align="center"><b>Figure 2: The ROC (Receiver Operating Characteristic) Curve Plot.</b></p>
 
-The confusion matrix provides a detailed count of model predictions versus actual labels. The matrix highlights that only 53 legitimate transactions were incorrectly flagged as fraud (false positives), whereas 891 fraudulent transactions were missed (false negatives). This aligns with the fraud class precision of 99.06% and recall of 86.28%, demonstrating the model’s conservative approach to minimize false alarms while capturing most fraud cases. Understanding the distribution of these errors is critical for risk management and operational decision-making.
+The confusion matrix provides a detailed count of model predictions versus actual labels. The matrix highlights that only 53 legitimate transactions were incorrectly flagged as fraud (false positives), whereas 891 fraudulent transactions were missed (false negatives). This aligns with the fraud class precision of 95.23% and recall of 54.28%. The model is conservative, keeping false alarms very low while catching just over half of fraudulent transactions. Understanding the distribution of these errors is critical for risk management and operational decision-making.
 
 <p align="center">
-  <img src="storage/results/confusion_matrix_20250810_100801.png" width="750"/>
+  <img src="storage/results/confusion_matrix_heldout.png" width="750"/>
 </p>
 
 <p align="center"><b>Figure 3: The Confusion Matrix Plot.</b></p>
@@ -71,8 +73,8 @@ For increased readability, the results of the plot have also been tabulated.
 
 |                       | **Predicted Legitimate** | **Predicted Fraud** |
 | --------------------- | ------------------------ | ------------------- |
-| **Actual Legitimate** | 1,476,323                | 53                  |
-| **Actual Fraud**      | 891                      | 5,605               |
+| **Actual Legitimate** | 442,860                  | 53                  |
+| **Actual Fraud**      | 891                      | 1,058               |
 
 </div>
 
@@ -84,19 +86,19 @@ As we can see, the number of False Positives (FP) totaled 53 transactions, where
 
 | **Class**     | **Precision** | **Recall**  | **F1-Score** | **Support** |
 | ------------- | ------------- | ----------- | ------------ | ----------- |
-| 0.0           | 0.999396838   | 0.999964101 | 0.999680389  | 1,476,376   |
-| 1.0           | 0.990632732   | 0.862838670 | 0.922330097  | 6,496       |
-| Accuracy      | —             | —           | 0.999363398  | 1,482,872   |
-| Macro Avg.    | 0.995014785   | 0.931401386 | 0.961005243  | 1,482,872   |
-| Weighted Avg. | 0.999358445   | 0.999363398 | 0.999341541  | 1,482,872   |
+| 0.0           | 0.997992117   | 0.999880338 | 0.998935335  | 442,913     |
+| 1.0           | 0.952295230   | 0.542842483 | 0.691503268  | 1,949       |
+| Accuracy      | —             | —           | 0.997877994  | 444,862     |
+| Macro Avg.    | 0.975143673   | 0.771361410 | 0.845219302  | 444,862     |
+| Weighted Avg. | 0.997791913   | 0.997877994 | 0.997588434  | 444,862     |
 
 </div>
 
 <p align="center"><b>Table 2: The Classification Report Results.</b></p>
 
-The report confirms that the model performs extremely well on the majority class while maintaining strong performance on the minority fraud class. Weighted averages reflect the overall dataset performance, while macro averages provide insight into class balance. The F1-score for fraud, at 92.23%, illustrates a strong trade-off between precision and recall, guiding threshold optimization and further feature or model enhancements.
+The report confirms that the model performs extremely well on the majority class, while its performance on the minority fraud class is limited by recall. Weighted averages reflect the overall dataset performance, while macro averages provide insight into class balance. The F1-score for fraud, at 69.15%, reflects high precision paired with moderate recall, which points to threshold tuning and further feature or model enhancements.
 
-Overall, the *SecureBank* fraud detection model performs robustly across multiple evaluation metrics, effectively distinguishing between legitimate and fraudulent transactions. The precision-recall and ROC curves demonstrate strong detection capability with minimal false alarms, while the confusion matrix highlights that most fraud cases are correctly identified and only a small number of legitimate transactions are misclassified. The classification report confirms the model’s reliability and balance between precision and recall, providing confidence in its ability to support operational fraud prevention. Collectively, these results offer a clear, comprehensive view of model effectiveness, guiding both threshold setting and post-deployment policies.
+Overall, the *SecureBank* fraud detection model performs robustly across multiple evaluation metrics, effectively distinguishing between legitimate and fraudulent transactions. The precision-recall and ROC curves demonstrate strong detection capability with minimal false alarms, while the confusion matrix shows that very few legitimate transactions are misclassified and that a substantial share of fraud is still missed. The classification report confirms that precision is the model's strength and recall its main limitation. Collectively, these results offer a clear, comprehensive view of model effectiveness, guiding both threshold setting and post-deployment policies.
 
 ## **Deployment Strategy and Post-Deployment Monitoring**
 
@@ -110,7 +112,7 @@ Additionally, statistical drift detection techniques (such as population stabili
 
 In fraud detection for the *SecureBank* system, both false positives and false negatives have significant real-world consequences. False positives—legitimate transactions flagged as fraud—can frustrate customers, increase operational costs through unnecessary reviews, and even result in lost revenue from declined payments. False negatives—fraudulent transactions that go undetected—pose a direct financial risk to the bank and its customers. While preventing false negatives is a priority, maintaining a balance is crucial to avoid excessive false positives and preserve customer trust.
 
-The model’s confusion matrix shows 891 false negatives compared to 53 false positives, with a recall of \~86% for fraud cases. This means about 14% of fraud slips through detection, while a precision of \~99% indicates the model rarely triggers false alarms. Such results are typical in fraud detection, where the class imbalance is severe and fraud patterns closely resemble legitimate behavior. Future analysis could explore whether errors cluster around specific merchants, transaction types, or time periods to uncover additional signals.
+The model’s confusion matrix shows 891 false negatives compared to 53 false positives, with a recall of \~54% for fraud cases. This means about 46% of fraud slips through detection, while a precision of \~95% indicates the model rarely triggers false alarms. Such results are typical in fraud detection, where the class imbalance is severe and fraud patterns closely resemble legitimate behavior. Future analysis could explore whether errors cluster around specific merchants, transaction types, or time periods to uncover additional signals.
 
 To improve recall without sacrificing precision, strategies may include enhanced feature engineering to capture temporal and behavioral patterns, applying imbalance-handling techniques such as SMOTE or cost-sensitive learning, and exploring more advanced models like ensembles or neural networks. Post-deployment, implementing tiered responses—blocking high-confidence fraud while reviewing lower-confidence cases—can balance risk mitigation with customer experience. Continuous monitoring and feedback loops will further allow the model to adapt to emerging fraud patterns.
 
@@ -124,6 +126,6 @@ Finally, structured logging was essential for monitoring and diagnosing issues. 
 
 ## **Conclusion**
 
-In conclusion, the *SecureBank* fraud detection system combines carefully engineered features, a well-tuned machine learning model, and a thoughtful deployment strategy to effectively detect and prevent fraudulent activity while minimizing false alarms. Rigorous offline evaluation confirms excellent precision, ensuring legitimate transactions are rarely flagged, though recall analysis reveals opportunities to capture more fraudulent cases.
+In conclusion, the *SecureBank* fraud detection system combines carefully engineered features, a random forest model, and a thoughtful deployment strategy to effectively detect and prevent fraudulent activity while minimizing false alarms. Rigorous offline evaluation confirms excellent precision, ensuring legitimate transactions are rarely flagged, though recall analysis reveals opportunities to capture more fraudulent cases.
 
 By integrating targeted improvements (such as enhanced feature engineering, handling imbalances, and advanced modeling), the system can further reduce missed fraud without sacrificing precision. Coupled with comprehensive post-deployment monitoring, including online metrics and adaptive retraining, the system is designed to evolve alongside changing fraud patterns, safeguarding customers while optimizing operational efficiency.
